@@ -1,5 +1,5 @@
 console.log('js loaded');
-
+let fetchData = [];
 const loadCategoryLinks = async () => {
     const URL = `https://openapi.programming-hero.com/api/news/categories`;
     try {
@@ -34,7 +34,8 @@ const fetchSingleCategoryNews = async (category_id, category_name) => {
     try {
         const res = await fetch(URL);
         const data = await res.json();
-        displayAllNews(data.data, category_name);
+        fetchData = data.data;
+        displayAllNews(fetchData, category_name);
     } catch (error) {
         console.log(error);
     }
@@ -48,7 +49,7 @@ const displayAllNews = (data, category_name) => {
     const allNewsContainer = document.getElementById('allNewsContainer');
     allNewsContainer.innerHTML = '';
     data.forEach((singleNews) => {
-        console.log(singleNews.author);
+        //console.log(singleNews.author);
         const card = document.createElement('div');
         card.classList.add("card", "mb-3");
         card.innerHTML = `
@@ -90,10 +91,73 @@ const displayAllNews = (data, category_name) => {
       </div>
     </div>
   </div>`;
-  
+
         allNewsContainer.appendChild(card);
     })
+}
 
+const fetchNewsDetail = async (news_id) => {
+    const URL = `https://openapi.programming-hero.com/api/news/${news_id}`;
+    try {
+        const res = await fetch(URL);
+        const data = await res.json();
+        showNewsDetail(data.data[0]);
+    } catch (error) {
+        console.log(error);
+    }
+}
+const showNewsDetail = (newsDetail) => {
+    //
+    const { image_url, title, details, author, total_view, others_info } = newsDetail;
+  
+    document.getElementById("modal-body").innerHTML = `
+    <div class= "card mb-3">
+    <div class="row g-0">
+      <div class="col-md-12">
+        <img src=${image_url} class="img-fluid rounded-start" alt="..." />
+      </div>
+      <div class="col-md-12 d-flex flex-column">
+        <div class="card-body">
+          <h5 class="card-title">${title} <span class="badge text-bg-warning">
+          ${others_info.is_trending ? "Trending" : "Not trending"}</span></h5>
+          <p class="card-text">${details}</p>  
+        </div>
+        <div class="card-footer border-0 bg-body d-flex justify-content-between">
+            <div class="d-flex gap-2">
+                <img src=${author.img} class="img-fluid rounded-circle" alt="..." height="40" width="40"/>
+                <div>
+                    <p class="m-0 p-0">${author.name ? author.name : "Not available"}</p>
+                    <p class="m-0 p-0">${author.published_date}</p>
+                </div>
+            </div>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-eye"></i>
+                    <p class="m-0 p-0">${total_view}</p>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    
+};
+
+const showTrending=()=>{
+    const trendingNews = fetchData.filter(singleData => singleData.others_info.is_trending === true);
+    //console.log(trendingNews[0].others_info.is_trending);
+    //console.log(others_info.is_trending);
+    const category_name = document.getElementById("category_name").innerText;
+    displayAllNews(trendingNews, category_name);
 
 }
+
+const showTodaysPick=()=>{
+    const trendingNews = fetchData.filter(singleData => singleData.others_info.is_todays_pick === true);
+    //console.log(trendingNews[0].others_info.is_todays_pick);
+    //console.log(others_info.is_trending);
+    const category_name = document.getElementById("category_name").innerText;
+    displayAllNews(trendingNews, category_name);
+
+}
+
 //loadCategoryLinks();
